@@ -4,6 +4,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
 import { Button } from './ui/button'
+import { Startup, Author } from '@/sanity.types'
+
+export type StartupTypeCard = Omit<Startup, "author"> & { author? : Author};
 
 const StartupCard = ({ post} : {post : StartupTypeCard}) => {
 
@@ -59,7 +62,7 @@ const StartupCard = ({ post} : {post : StartupTypeCard}) => {
       <Link href={`/startup/${_id}`}>
         <p className="startup-card_desc">{description}</p>
 
-        <Image src={image} alt="placeholder" width={10} height={10} className="startup-card_img" />
+        <img src={image} alt="placeholder"  className="startup-card_img" />
       </Link>
 
       <div className="flex-between gap-3 mt-5">

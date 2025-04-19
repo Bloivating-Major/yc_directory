@@ -1,0 +1,9 @@
+{
+    "source": "./sanity/extract.json",
+    "output": "./sanity/types.ts",
+    "targets": {
+      "typescript": {
+        "types": true
+      }
+    }
+  }

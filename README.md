@@ -61,3 +61,68 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - Install Sanity Cli
 
 - Exploring Sanity Studio
+
+- Go to Sanity Folder
+    - In SchemaTypes
+        - author.ts
+            - define author as in mongoose
+
+    - use it in index.ts
+
+    - now structure it in structure.ts
+
+    - Now create Startup schema in startup.ts
+
+    - add startup in index.ts
+
+- install npm i sanity-plugin-markdown
+
+in sanity config add markdown in plugins
+
+- in your layout.tsx 
+- easymde is used for markdown
+
+
+- create a author and startup
+
+- then in order to use the schema you need to use 
+    GROQ Query Language
+
+- go in your lib in sanity folder and create a 
+    - queries.ts file
+
+    - write that query there
+
+- now in your page.tsx file import that query and use it there
+
+- add the startupTypeCard
+
+- extract the schemas
+- npx sanity@latest schema extract --path=./sanity/extract.json
+
+- create new file in your root folder 
+    - sanity.typegen.json
+        in that add 1 configuration object
+
+        - we are not using source folder
+
+        - then run the command 
+            - npx sanity@latest typegen generate
+
+        - modity your package.json file
+
+    - finally let's define the startup card type
+    StartupCard.tsx 
+        export type StartupCard
+
+
+        - we will be using sanity live functionality
+
+        - npm i server-only
+
+        - create new utility file in lib
+            - live.ts
+        - in env variables use
+            - next public sanity api version="vX"
+
+        - in your page.tsx you can easily use sanity fetch     

@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+   "typegen": "npx sanity@latest schema extract --path=./sanity/extract.json && copy \".\\sanity\\extract.json\" \".\\schema.json\" && npx sanity@latest typegen generate && del \".\\schema.json\""
   },
   "packageManager": "npm@10.5.2",
   "overrides": {
@@ -28,6 +29,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sanity": "^3.85.1",
+    "sanity-plugin-markdown": "^5.1.0",
     "styled-components": "^6.1.17",
     "tailwind-merge": "^3.2.0",
     "tailwindcss-animate": "^1.0.7"
