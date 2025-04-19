@@ -125,4 +125,36 @@ in sanity config add markdown in plugins
         - in env variables use
             - next public sanity api version="vX"
 
-        - in your page.tsx you can easily use sanity fetch     
+        - in your page.tsx you can easily use sanity fetch 
+
+        - we can render our data without even refreshing the page    
+
+        - install the server-only package in our project
+
+        - creating a details page 
+
+        in your startup id page.tsx
+            - use the search params 
+            - then create a new query
+            - startup by id query
+
+            - in your next.config.ts you have to add experemental tag to use it
+
+            - export it into your page.tsx
+
+             "next": "15.0.0-canary.183",
+             "next-sanity": "^9.5.1-canary.23",
+
+             install the markdown-it package
+
+             add shadcn skeleton
+
+             - creating a new component view.tsx
+
+             - create a ping component also 
+
+             - write a seperate sanity query startup views query
+
+             - setup the write client 
+
+             - it will be done in sanity dashboard in project's api section
