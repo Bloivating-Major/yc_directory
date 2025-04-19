@@ -34,3 +34,30 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+- Created a Next Js Project
+- Setup Next Auth
+- Setup Tailwind Configuration
+- Created Hero Section 
+- Creating a Search Component
+
+- Next Js supports the prefetching and ui loading with client side navigation on submission in Form component of React 19
+
+- Form
+    - Has Action and scroll property
+    - Contains an Input tag 
+
+- We have created a Search  Form Component and Search Form Reset Component so that user can search and then after that the form resets itself.
+- Because our reset component will work on client side not on server side
+
+- Created a Search Form Component
+
+- Createtd Startup Card Component
+
+- Learned how Next Js handles external image links
+
+- Login into sanity and setup sanity
+
+- Install Sanity Cli
+
+- Exploring Sanity Studio
