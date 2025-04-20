@@ -158,3 +158,21 @@ in sanity config add markdown in plugins
              - setup the write client 
 
              - it will be done in sanity dashboard in project's api section
+
+             - write query
+             - write auth.ts
+
+- create startup form
+
+- added tailwind css components
+    input
+    textarea
+    toast
+
+- Section
+    Heading h1
+
+- create startup form component
+    - use session to check if user is logged in or not?
+    - section 
+    - for adding the markdown you will use uiw/react-md editor

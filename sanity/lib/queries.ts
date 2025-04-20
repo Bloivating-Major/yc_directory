@@ -15,24 +15,36 @@ export const STARTUPS_QUERY =
   image,
 }`);
 
-export const STARTUP_BY_ID_QUERY =
-  defineQuery(`*[_type == "startup" && _id == $id][0]{
-  _id, 
-  title, 
-  slug,
+export const STARTUP_BY_ID_QUERY = `*[_type == "startup" && _id == $id][0]{
+  _id,
   _createdAt,
-  author -> {
-    _id, name, username, image, bio
-  }, 
-  views,
+  title,
   description,
-  category,
   image,
+  category,
   pitch,
-}`);
+  author->{
+    _id,
+    name,
+    username,
+    image
+  }
+}`;
 
 export const STARTUP_VIEWS_QUERY = defineQuery(`
     *[_type == "startup" && _id == $id][0]{
         _id, views
     }
 `);
+
+export const AUTHOR_BY_GITHUB_ID_QUERY = defineQuery(`
+  *[_type == "author" && id == $id][0]{
+    _id,
+    id,
+    name,
+    username,
+    email,
+    image,
+    bio
+  }
+  `);
