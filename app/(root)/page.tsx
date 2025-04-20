@@ -13,12 +13,12 @@ export default async function Home({searchParams, } : {
    const session = await auth();
 
       // Debug session
-      if (session) {
-        console.log('Session data:', {
-          id: session.id,
-          // user: session.user
-        });
-      }
+      // if (session) {
+      //   console.log('Session data:', {
+      //     id: session.id,
+      //     // user: session.user
+      //   });
+      // }
 
       // console.log('Full session data:', JSON.stringify(session, null, 2));
 
