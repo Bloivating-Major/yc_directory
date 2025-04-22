@@ -1,19 +1,32 @@
 import { defineQuery } from "next-sanity";
 
 export const STARTUPS_QUERY =
-  defineQuery(`*[_type == "startup" && defined(slug.current) && !defined($search) || title match $search || category match $search || author->name match $search] | order(_createdAt desc) {
-  _id, 
-  title, 
-  slug,
-  _createdAt,
-  author -> {
-    _id, name, image, bio
-  }, 
-  views,
-  description,
-  category,
-  image,
-}`);
+  defineQuery(`*[
+    _type == "startup" && 
+    defined(slug.current) && 
+    (
+      !defined($search) || 
+      $search == "" || 
+      title match ("*" + lower($search) + "*") || 
+      lower(title) match ("*" + lower($search) + "*") ||
+      category match ("*" + lower($search) + "*") || 
+      lower(category) match ("*" + lower($search) + "*") ||
+      author->name match ("*" + lower($search) + "*") ||
+      lower(author->name) match ("*" + lower($search) + "*")
+    )
+  ] | order(_createdAt desc) {
+    _id, 
+    title, 
+    slug,
+    _createdAt,
+    author -> {
+      _id, name, image, bio
+    }, 
+    views,
+    description,
+    category,
+    image,
+  }`);
 
 export const STARTUP_BY_ID_QUERY =
   defineQuery(`*[_type == "startup" && _id == $id][0]{
@@ -98,5 +111,7 @@ export const PLAYLIST_BY_SLUG_QUERY = defineQuery(`
     }
   }
 `);
+
+
 
 

@@ -4,25 +4,24 @@ import { STARTUPS_QUERY } from "@/sanity/lib/queries";
 import { sanityFetch, SanityLive } from "@/sanity/lib/live";
 import { auth } from "@/auth";
 
-export default async function Home({searchParams, } : {
-  searchParams : Promise<{query? : string}>
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ query?: string }>;
 }) {
-   const query = (await searchParams).query;
-   const params = { search : query || null};
-   const { data: posts } = await sanityFetch({ query: STARTUPS_QUERY, params });
-   const session = await auth();
+  const query = (await searchParams).query;
+  
+  // Always provide the search parameter, even if empty
+  const params = { 
+    search: query || "" 
+  };
+  
+  const { data: posts } = await sanityFetch({ 
+    query: STARTUPS_QUERY, 
+    params 
+  });
 
-      // Debug session
-      // if (session) {
-      //   console.log('Session data:', {
-      //     id: session.id,
-      //     // user: session.user
-      //   });
-      // }
-
-      // console.log('Full session data:', JSON.stringify(session, null, 2));
-
-   return (
+  return (
     <>
       <section className="pink_container">
         <h1 className="heading rounded-md">
@@ -59,6 +58,7 @@ export default async function Home({searchParams, } : {
 
       <SanityLive />
     </>
-   );
+  );
 }
+
 
