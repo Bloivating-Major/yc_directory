@@ -1,3 +1,5 @@
+"use client";
+
 import Form from "next/form";
 import SearchFormReset from "./SearchFormReset";
 import { Search } from "lucide-react";
@@ -10,7 +12,6 @@ const SearchForm = ({ query }: { query?: string }) => {
                 defaultValue={query}
                 className="search-input"
                 placeholder="Search Startups"
-                // Convert to lowercase when submitting
                 onChange={(e) => e.target.value = e.target.value.toLowerCase()}
             />
 
