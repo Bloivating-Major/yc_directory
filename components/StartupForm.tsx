@@ -44,7 +44,7 @@ const StartupForm = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value.trim(),
+      [name]: value, // Remove the trim() here to allow spaces
     }));
     
     if (errors[name]) {
@@ -59,7 +59,7 @@ const StartupForm = () => {
   const handlePitchChange = useCallback((value: string | undefined) => {
     setFormData((prev) => ({
       ...prev,
-      pitch: value?.trim() || "",
+      pitch: value || "", // Remove the trim() here to allow spaces
     }));
     
     if (errors.pitch) {
@@ -77,14 +77,24 @@ const StartupForm = () => {
       throw new Error('Image URL must start with https://');
     }
 
-    // Validate all fields are properly trimmed
-    Object.entries(data).forEach(([key, value]) => {
-      if (typeof value === 'string' && value !== value.trim()) {
-        throw new Error(`${key} contains leading or trailing whitespace`);
-      }
-    });
+    // Only trim leading and trailing whitespace before submission
+    const trimmedData = {
+      ...data,
+      title: data.title.trim(),
+      description: data.description.trim(),
+      category: data.category.trim(),
+      link: data.link.trim(),
+      pitch: data.pitch.trim(),
+    };
 
-    return formSchema.parseAsync(data);
+    // Check if any field is empty after trimming
+    for (const [key, value] of Object.entries(trimmedData)) {
+      if (!value) {
+        throw new Error(`${key.charAt(0).toUpperCase() + key.slice(1)} cannot be empty`);
+      }
+    }
+
+    return formSchema.parseAsync(trimmedData);
   };
 
   const retrySubmission = async (formDataObj: FormData, retryCount: number): Promise<any> => {
@@ -110,7 +120,7 @@ const StartupForm = () => {
 
     try {
       // Pre-submission validation
-      if (!formData.pitch || formData.pitch.length < 10) {
+      if (!formData.pitch || formData.pitch.trim().length < 10) {
         throw new Error('Pitch must be at least 10 characters long');
       }
 
@@ -120,6 +130,7 @@ const StartupForm = () => {
       // Create FormData object from state
       const formDataObj = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
+        // Only trim when adding to FormData for submission
         formDataObj.append(key, value.trim());
       });
 
