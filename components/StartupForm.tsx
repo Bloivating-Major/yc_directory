@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useActionState } from "react";
+import React, { useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import MDEditor from "@uiw/react-md-editor";
@@ -12,72 +12,174 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { createPitch } from "@/lib/actions";
 
+interface FormState {
+  title: string;
+  description: string;
+  category: string;
+  link: string;
+  pitch: string;
+}
+
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
 const StartupForm = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [pitch, setPitch] = useState("");
+  const [formData, setFormData] = useState<FormState>({
+    title: "",
+    description: "",
+    category: "",
+    link: "",
+    pitch: "",
+  });
+  const [isPending, setIsPending] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
   const router = useRouter();
 
-  const handleFormSubmit = async (prevState: any, formData: FormData) => {
+  // Debounced input handler to prevent too many state updates
+  const handleInputChange = useCallback((
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value.trim(),
+    }));
+    
+    if (errors[name]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  }, [errors]);
+
+  const handlePitchChange = useCallback((value: string | undefined) => {
+    setFormData((prev) => ({
+      ...prev,
+      pitch: value?.trim() || "",
+    }));
+    
+    if (errors.pitch) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.pitch;
+        return newErrors;
+      });
+    }
+  }, [errors]);
+
+  const validateFormData = async (data: FormState) => {
+    // Additional validation beyond Zod
+    if (data.link && !data.link.startsWith('https://')) {
+      throw new Error('Image URL must start with https://');
+    }
+
+    // Validate all fields are properly trimmed
+    Object.entries(data).forEach(([key, value]) => {
+      if (typeof value === 'string' && value !== value.trim()) {
+        throw new Error(`${key} contains leading or trailing whitespace`);
+      }
+    });
+
+    return formSchema.parseAsync(data);
+  };
+
+  const retrySubmission = async (formDataObj: FormData, retryCount: number): Promise<any> => {
     try {
-      const formValues = {
-        title: formData.get("title") as string,
-        description: formData.get("description") as string,
-        category: formData.get("category") as string,
-        link: formData.get("link") as string,
-        pitch,
-      };
+      return await createPitch({}, formDataObj, formData.pitch);
+    } catch (error) {
+      if (retryCount < MAX_RETRIES) {
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+        return retrySubmission(formDataObj, retryCount + 1);
+      }
+      throw error;
+    }
+  };
 
-      await formSchema.parseAsync(formValues);
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    if (isPending) return; // Prevent double submission
+    
+    setIsPending(true);
+    setErrors({});
+    setRetryCount(0);
 
-      const result = await createPitch(prevState, formData, pitch);
+    try {
+      // Pre-submission validation
+      if (!formData.pitch || formData.pitch.length < 10) {
+        throw new Error('Pitch must be at least 10 characters long');
+      }
 
-      if (result.status == "SUCCESS") {
+      // Validate form data
+      await validateFormData(formData);
+
+      // Create FormData object from state
+      const formDataObj = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        formDataObj.append(key, value.trim());
+      });
+
+      // Submit to server action with retry logic
+      const result = await retrySubmission(formDataObj, 0);
+
+      if (result.status === "SUCCESS") {
         toast({
           title: "Success",
           description: "Your startup pitch has been created successfully",
         });
-
+        
+        // Clear form data before navigation
+        setFormData({
+          title: "",
+          description: "",
+          category: "",
+          link: "",
+          pitch: "",
+        });
+        
         router.push(`/startup/${result._id}`);
+      } else {
+        throw new Error(result.error || "Failed to create pitch");
       }
-
-      return result;
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        const fieldErorrs = error.flatten().fieldErrors;
+      console.error('Form submission error:', error);
 
-        setErrors(fieldErorrs as unknown as Record<string, string>);
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0].toString()] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
 
         toast({
-          title: "Error",
+          title: "Validation Error",
           description: "Please check your inputs and try again",
           variant: "destructive",
         });
-
-        return { ...prevState, error: "Validation failed", status: "ERROR" };
+      } else {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "An unexpected error occurred",
+          variant: "destructive",
+        });
       }
-
-      toast({
-        title: "Error",
-        description: "An unexpected error has occurred",
-        variant: "destructive",
-      });
-
-      return {
-        ...prevState,
-        error: "An unexpected error has occurred",
-        status: "ERROR",
-      };
+    } finally {
+      setIsPending(false);
     }
   };
 
-  const [state, formAction, isPending] = useActionState(handleFormSubmit, {
-    error: "",
-    status: "INITIAL",
-  });
-
   return (
-    <form action={formAction} className="startup-form">
+    <form 
+      onSubmit={handleSubmit} 
+      className="startup-form"
+      autoComplete="off"
+    >
       <div>
         <label htmlFor="title" className="startup-form_label">
           Title
@@ -85,11 +187,15 @@ const StartupForm = () => {
         <Input
           id="title"
           name="title"
+          value={formData.title}
+          onChange={handleInputChange}
           className="startup-form_input"
           required
+          minLength={3}
+          maxLength={100}
           placeholder="Startup Title"
+          disabled={isPending}
         />
-
         {errors.title && <p className="startup-form_error">{errors.title}</p>}
       </div>
 
@@ -100,11 +206,15 @@ const StartupForm = () => {
         <Textarea
           id="description"
           name="description"
+          value={formData.description}
+          onChange={handleInputChange}
           className="startup-form_textarea"
           required
+          minLength={10}
+          maxLength={500}
           placeholder="Startup Description"
+          disabled={isPending}
         />
-
         {errors.description && (
           <p className="startup-form_error">{errors.description}</p>
         )}
@@ -117,11 +227,15 @@ const StartupForm = () => {
         <Input
           id="category"
           name="category"
+          value={formData.category}
+          onChange={handleInputChange}
           className="startup-form_input"
           required
+          minLength={2}
+          maxLength={50}
           placeholder="Startup Category (Tech, Health, Education...)"
+          disabled={isPending}
         />
-
         {errors.category && (
           <p className="startup-form_error">{errors.category}</p>
         )}
@@ -134,11 +248,15 @@ const StartupForm = () => {
         <Input
           id="link"
           name="link"
+          type="url"
+          value={formData.link}
+          onChange={handleInputChange}
           className="startup-form_input"
           required
-          placeholder="Startup Image URL"
+          pattern="https://.*"
+          placeholder="https://example.com/image.jpg"
+          disabled={isPending}
         />
-
         {errors.link && <p className="startup-form_error">{errors.link}</p>}
       </div>
 
@@ -146,23 +264,22 @@ const StartupForm = () => {
         <label htmlFor="pitch" className="startup-form_label">
           Pitch
         </label>
-
         <MDEditor
-          value={pitch}
-          onChange={(value) => setPitch(value as string)}
+          value={formData.pitch}
+          onChange={handlePitchChange}
+          name="pitch"
           id="pitch"
           preview="edit"
           height={300}
           style={{ borderRadius: 20, overflow: "hidden" }}
           textareaProps={{
-            placeholder:
-              "Briefly describe your idea and what problem it solves",
+            placeholder: "Briefly describe your idea and what problem it solves",
+            disabled: isPending,
           }}
           previewOptions={{
-            disallowedElements: ["style"],
+            disallowedElements: ["style", "script"],
           }}
         />
-
         {errors.pitch && <p className="startup-form_error">{errors.pitch}</p>}
       </div>
 
@@ -171,8 +288,17 @@ const StartupForm = () => {
         className="startup-form_btn text-white"
         disabled={isPending}
       >
-        {isPending ? "Submitting..." : "Submit Your Pitch"}
-        <Send className="size-6 ml-2" />
+        {isPending ? (
+          <>
+            {retryCount > 0 ? `Retrying... (${retryCount}/${MAX_RETRIES})` : "Submitting..."}
+            <Send className="size-6 ml-2 opacity-50" />
+          </>
+        ) : (
+          <>
+            Submit Your Pitch
+            <Send className="size-6 ml-2" />
+          </>
+        )}
       </Button>
     </form>
   );
